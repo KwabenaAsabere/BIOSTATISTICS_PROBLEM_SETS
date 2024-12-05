@@ -1,0 +1,20 @@
+---
+title: "VERSION CONTROL"
+author: "K.ASABERE"
+df-print: kable
+code-overflow: wrap
+fig-width: 6
+fig-asp: 0.618
+format: html
+execute: 
+  echo: true
+  warning: false
+  message: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+theme_set(theme_bw())
+```

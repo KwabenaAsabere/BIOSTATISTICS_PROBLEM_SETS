@@ -1,0 +1,239 @@
+---
+title: "FIRST TERM PS2"
+author: "ASABERE KWABENA ASANTE"
+df-print: kable
+code-overflow: wrap
+date: "9-28-2024"
+execute: 
+  echo: true
+  warning: false
+  message: false
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+theme_set(theme_bw())
+class621 <- read_csv("2019class621label.csv")
+
+head(class621)
+
+```
+
+```{r}
+class621 <- class621 %>% select(weight,height)
+
+class621 %>% 
+  is.na()%>%
+  sum()
+
+```
+
+```{r}
+quantile(class621$height,probs = c(0.01,0.99))
+quantile(class621$weight,probs = c(0.01,0.99))
+
+```
+
+```{r}
+class621 <- class621 %>% 
+  mutate( bmi=(weight/height^2)*704.5 )
+
+head(class621)
+
+ class621 %>% filter(bmi >35)
+ 
+ class621 %>% filter(bmi <18)
+ 
+ class621 <- class621 %>% filter(bmi <= 39)
+ 
+```
+
+```{r}
+class621 %>% 
+  ggplot(aes(y = height))+
+  geom_boxplot(fill = "grey")+
+  labs(y = "Height")
+
+
+class621 %>% 
+  ggplot(aes(y = bmi))+
+  geom_boxplot(fill = "grey")+
+  labs(y = "BMI")
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

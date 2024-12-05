@@ -1,0 +1,101 @@
+---
+title: "LINEAR REGRESSION WITH TIDY MODELS"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+theme_set(theme_bw())
+student_debt <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-02-09/student_debt.csv")
+
+
+```
+
+
+```{r}
+student_debt %>% 
+  ggplot(aes(x=year,y=loan_debt_pct,color =race))+
+  geom_point(size = 3, alpha = 0.8)+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x = NULL, y = "% of families with student loan debt", color = NULL)
+
+```
+
+```{r}
+## setting an engine with parsnip
+
+lm_spec <- linear_reg() %>% set_engine("lm")
+
+
+```
+
+
+```{r}
+lm_fit <- lm_spec %>% 
+  fit(loan_debt_pct ~ year*race, data = student_debt)
+lm_fit
+
+```
+
+```{r}
+tidy(lm_fit)
+
+
+```
+
+### Explore Model
+```{r}
+new_points <- crossing(race = c("Black", "Hispanic", "White"),
+                       year =1990:2020)
+
+augment(lm_fit, new_data = new_points) %>% 
+  ggplot(aes(x=year,y = .pred,color =race))+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x = NULL, y = "% of families with student loan debt", color = NULL)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

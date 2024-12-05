@@ -1,0 +1,260 @@
+---
+title: "SELECTING VARIABLES FOR REGRESSION"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+### Using `tidymodels` and `glmnet`
+
+```{r}
+
+library(tidymodels)
+library(tidyverse)
+tidymodels_prefer()
+theme_set(theme_bw())
+ ames <- ames
+ ames <- ames %>% mutate(Sale_Price = log10(Sale_Price))
+ 
+```
+
+```{r}
+set.seed(502)
+ames_split <- initial_split(ames,prop = 0.8,strata = Sale_Price)
+ames_train <- training(ames_split)
+ames_test <- testing(ames_split)
+
+```
+
+## Recipes
+
+### With normalized and scaled values
+
+```{r}
+norm_recipe <- #ames_train %>% 
+  recipe(Sale_Price ~ Neighborhood + Gr_Liv_Area +Year_Built + Bldg_Type + Longitude +Latitude, data = ames_train) %>% 
+  step_log(Gr_Liv_Area) %>% 
+  step_other(Neighborhood,threshold = 0.01) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_center(all_predictors()) %>% 
+  step_scale(all_predictors())   
+  # estimate the means and standard deviation
+  # %>% prep(training = ames_train, retain = TRUE)
+norm_recipe
+ 
+```
+
+### with interaction terms and splines
+
+```{r}
+ames_rec <- #ames %>% 
+  recipe(Sale_Price ~ Neighborhood + Gr_Liv_Area +Year_Built + Bldg_Type + Longitude +Latitude, data = ames_train) %>% 
+  step_log(Gr_Liv_Area) %>% 
+  step_other(Neighborhood,threshold = 0.01) %>% 
+  step_dummy(all_nominal_predictors()) %>%
+  step_interact(~Gr_Liv_Area:starts_with("Bldg_Type_")) %>% 
+  step_ns(Latitude,Longitude,deg_free = 20) #ns = natural spline
+
+```
+
+### Cross validation
+
+```{r}
+set.seed(1001)
+ames_fold <- vfold_cv(ames_train, v= 10)
+keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
+ames_fold
+
+
+```
+
+### Creating model recipes and model objects
+
+```{r}
+lm_model <- linear_reg() %>% set_engine("lm")
+lasso_model <- linear_reg(penalty = 0.001,mixture = 1) %>% set_engine("glmnet")
+ridge_model <- linear_reg(penalty = 0.001,mixture = 0) %>% set_engine("glmnet")
+glmnet00001_model <- linear_reg(penalty = 0.00001,mixture = 0.5) %>% set_engine("glmnet")
+glmnet0001_model <- linear_reg(penalty = 0.0001,mixture = 0.5) %>% set_engine("glmnet")
+glmnet001_model <- linear_reg(penalty = 0.001,mixture = 0.5) %>% set_engine("glmnet")
+glmnet005_model <- linear_reg(penalty = 0.05,mixture = 0.5) %>% set_engine("glmnet")
+glmnet01_model <- linear_reg(penalty = 0.01,mixture = 0.5) %>% set_engine("glmnet")
+glmnet02_model <- linear_reg(penalty = 0.02,mixture = 0.5) %>% set_engine("glmnet")
+
+model_list <- list(
+  lm = lm_model,
+  lasso_model,
+  ridge_model,
+  glm00001 = glmnet00001_model,
+   glm0001 = glmnet0001_model,
+   glm001 = glmnet001_model,
+   glm005 = glmnet005_model,
+  glm01 = glmnet01_model,
+  glm02 = glmnet02_model
+  
+)
+
+preproc <- list(norm =norm_recipe,
+                ames = ames_rec)
+
+```
+
+### Creating workflow sets
+
+```{r}
+glmnet_models <- workflow_set(
+  preproc = preproc,
+  models = model_list,
+  cross = TRUE
+)
+
+glmnet_models
+
+```
+
+```{r}
+glmnet_models <- glmnet_models %>% 
+  workflow_map("fit_resamples",
+               # options to `workflow_map`:
+               seed = 1101, verbose = TRUE,
+               # options to `fit_resamples()`:
+               resamples = ames_fold, control= keep_pred
+               )
+
+collect_metrics(glmnet_models) %>% 
+  filter(.metric =="rmse")
+
+```
+
+```{r}
+autoplot(glmnet_models)
+
+```
+
+```{r}
+rank_results(glmnet_models, rank_metric = "rmse", select_best = TRUE)
+```
+
+
+```{r}
+lm_wflow <- 
+  workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(ames_rec)
+
+lm_fit <- fit(lm_wflow,ames_train)
+lm_test_results <-  ames_test %>% 
+  select(Sale_Price) %>% 
+  bind_cols(predict(lm_fit, new_data = ames_test))
+
+head(lm_test_results)
+
+rmse(lm_test_results,truth = Sale_Price, estimate = .pred)
+
+
+```
+
+
+```{r}
+
+glmnet00001_wflow <- 
+  workflow() %>% 
+  add_model(glmnet00001_model) %>% 
+  add_recipe(ames_rec)
+
+glmnet_fit <- fit(glmnet00001_wflow,ames_train)
+
+glmnet_test_results <-  ames_test %>% 
+  select(Sale_Price) %>% 
+  bind_cols(predict(glmnet_fit, new_data = ames_test))
+
+head(lm_test_results)
+
+rmse(glmnet_test_results,truth = Sale_Price, estimate = .pred)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

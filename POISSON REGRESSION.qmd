@@ -1,0 +1,18 @@
+---
+title: "POISON REGRESSION"
+editor: visual
+---
+
+## 
+
+```{r}
+library(tidyverse)
+library(broom)
+library(gt)
+library(ISLR2)
+```
+
+```{r}
+
+data("Bikeshare")
+```

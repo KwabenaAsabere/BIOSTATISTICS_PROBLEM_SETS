@@ -1,0 +1,15 @@
+project:
+  title: "BIOSTATS PROBLEM SETS"
+df-print: kable
+code-overflow: wrap
+fig-width: 6
+fig-asp: 0.618
+format: html
+execute: 
+  echo: true
+  warning: false
+  message: false
+  line-breaks: auto 
+editor_options: 
+  chunk_output_type: console
+

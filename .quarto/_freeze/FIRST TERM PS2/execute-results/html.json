@@ -1,0 +1,15 @@
+{
+  "hash": "03173562c7b875fe7bf1a54ecfaffab1",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"FIRST TERM PS2\"\nauthor: \"ASABERE KWABENA ASANTE\"\ndf-print: kable\ncode-overflow: wrap\ndate: \"9-28-2024\"\nexecute: \n  echo: true\n  warning: false\n  message: false\neditor: visual\neditor_options: \n  chunk_output_type: console\n---\n\n::: {.cell}\n\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

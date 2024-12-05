@@ -1,0 +1,235 @@
+library(janitor)
+library(tidyverse)
+library(readxl)
+library(gt)
+
+dirty <- read_excel(("dirty_data.xlsx")) %>% 
+  row_to_names(row_number = 1) %>%
+  clean_names()
+  
+
+dirty_data <- read_excel(("dirty_data.xlsx"), 
+                                 skip = 1,
+                                 .name_repair = make_clean_names)
+
+glimpse(dirty_data)
+
+dirty_data <- dirty_data %>% 
+  row_to_names(row_number = 1) %>%
+  clean_names()
+
+dirty_data <- dirty_data %>% 
+  remove_empty(c("rows", "cols")) %>%
+  remove_constant(na.rm = TRUE, quiet = FALSE) %>% # remove the column of all "Yes" values 
+  mutate(hire_date = convert_to_date(hire_date, # handle the mixed-format dates
+                                     character_fun = lubridate::mdy),
+         cert = dplyr::coalesce(certification, certification_2)) %>%
+  select(-certification, -certification_2) # drop unwanted columns
+
+
+dirty_data %>% get_dupes(contains("name"))
+
+roster <- dirty_data
+roster %>% 
+  tabyl(subject)
+
+roster %>%
+  filter(hire_date > as.Date("1950-01-01")) %>%
+  tabyl(employee_status, full_time)
+
+
+roster %>%
+  tabyl(full_time, subject, employee_status, show_missing_levels = FALSE)
+
+
+roster %>%
+ tabyl(full_time, subject, employee_status, show_missing_levels = FALSE)
+
+roster %>%
+  tabyl(employee_status, full_time) %>%
+  adorn_totals("row") %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting() %>%
+  adorn_ns() %>%
+  adorn_title("combined") %>% gt()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

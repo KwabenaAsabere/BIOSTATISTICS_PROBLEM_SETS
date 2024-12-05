@@ -1,0 +1,343 @@
+---
+title: "STRING MANIPULATION IN R"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(skimr)
+```
+
+```{r}
+swiftSongs <- read_csv("swiftSongsFull.csv")
+taylorswift <- read_csv("https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/swiftSongs.csv")
+
+```
+
+```{r}
+swiftSongs <- swiftSongs %>% 
+  select(track_name,youtube_title,youtube_duration,full_lyrics)
+
+glimpse(swiftSongs)
+skim(swiftSongs)
+
+```
+
+
+### Matching Strings
+
+
+```{r}
+# Displaying lyrics
+swiftSongs %>% filter(track_name == "It’s Nice To Have A Friend") %>% 
+  pull(full_lyrics)
+
+## Detecting if a string contains the sub_string "Taylor"
+str_detect(string = c("Taylor Swift", "Taylor Lautner", "Harry Styles"),
+           pattern = "Taylor")
+
+```
+
+```{r}
+swiftSongs <- swiftSongs %>% 
+  mutate(contains_midnight = str_detect(full_lyrics,  pattern = "midnight"))
+## How many of Taylor's songs mention the word midnight
+swiftSongs %>% 
+  pull(contains_midnight) %>% sum()
+
+ swiftSongs %>% 
+  mutate(contains_midnight = str_detect(full_lyrics,  pattern = "midnight|Midnight")) %>% 
+   pull(contains_midnight) %>% 
+   sum()
+
+
+```
+
+```{r}
+## The str_count() function is useful for tallying the number of times a pattern occurs in a string
+
+
+str_count("I'm so sick of running as fast as I can Wondering if I’d get there quicker if I was a man And I'm so sick of them coming at me again 'Cause if I was a man, then I'd be the man I’d be the man I'd be the man",
+          pattern = "man")
+
+```
+
+```{r}
+## counting the number of times Taylor mentions love in her songs
+
+swiftSongs <- swiftSongs %>% 
+  mutate(love_count = str_count(full_lyrics,pattern = "love"))
+
+## which song mentions love the most times and how many times is it mentioned
+swiftSongs %>% 
+  slice_max(love_count, n= 1) %>% 
+  select(track_name,love_count)
+
+
+
+```
+
+
+### Modifying Strings
+
+
+```{r}
+## the str_c function concatenates or combine multiple strings together
+
+## concatenating two strings
+str_c("...Are you ", "ready for it?")
+
+```
+
+
+One of the most common string operations that is needed when cleaning data is to extract substrings.This can be achieved using the str_sub() function
+
+
+```{r}
+## positive indices start from the beginning of the string
+str_sub(string = "Eras Tour", start = 1, end = 3)
+
+## Negative indices start from thened of the string
+str_sub(string = "Eras Tour", start = -4, end = -1)
+
+```
+
+
+Another common operation is to replace a particular pattern in strings.We can use the str_replace_all() function to replace certain patterns with a replacement of our choice
+
+
+```{r}
+str_replace_all("I'm so sick of running as fast as I can Wondering if I’d get there quicker if I was a man And I'm so sick of them coming at me again 'Cause if I was a man, then I'd be the man I’d be the man I'd be the man",
+          pattern = "man", replacement = "!!!")
+```
+
+```{r}
+## create a newvariable called youtube_time that is the same as youtube_duration , but with
+## a symbol : replacing the M
+
+swiftSongs <-  swiftSongs %>% 
+  mutate(youtube_time = str_replace_all(youtube_duration, pattern = "M",replacement = ":"))
+
+## Modify youtube time by removing the P,T & S
+
+swiftSongs <-  swiftSongs %>% 
+  mutate(youtube_time = str_replace_all(youtube_duration, pattern = "M",replacement = ":"),
+         youtube_time = str_remove_all(youtube_time, pattern = "PT|S"))
+
+
+## Modify youtube_time to add trailing 0s when needed using the case_when() function
+## together with str_replace_all and str_length()
+
+swiftSongs <- swiftSongs %>% 
+  mutate(youtube_time = 
+           case_when(str_length(youtube_time)== 2 ~ str_c(youtube_time,"00"),
+                     str_length(youtube_time)== 3 ~ str_replace_all(youtube_time,
+                                                                    pattern = ":",
+                                                                    replacement = ":0"),
+                   TRUE ~ youtube_time  ))
+
+
+```
+
+
+### Capitalization and Spacing
+
+
+```{r}
+# str_to_lower() converts strings to all upper case
+# str_to_upper() converts all strings to upper case
+# str_to_title() converts the first character of each word to upper case
+## str_to_sentence( capitalizes only the forst letter of the first word)
+
+str_to_lower("It's nice to have a friend")
+str_to_upper("It's nice to have a friend")
+str_to_title("It's nice to have a friend")
+str_to_sentence("It's nice to have a friend")
+
+
+```
+
+
+To assist with cleaning up issues with spaces *stringr* provides us with other helpful functions as well:
+
+-   ***str_trim()*** : Removes trailing and leading white space in a string
+-   ***str_squish()*** : Removes trailing and leading white space in string and collapsed multiple consecutive spaces inside of string to a single space.
+
+
+```{r}
+## Removing spaces at the start and end of string
+str_trim(" Best believe I'm still bejeweled   When I walk in the room  I can still make the whole place shimer ")
+
+## Removing spaces at the start and end of string and repetitive spaces
+str_squish(" Best believe I'm still bejeweled   When I walk in the room  I can still make the whole place shimer ")
+
+
+```
+
+
+### More practice ideas on string manipulation
+
+
+```{r}
+
+taylorswift <-taylorswift %>% 
+  mutate(lyrics = str_to_lower(full_lyrics)) 
+
+taylorswift %>% 
+  pull(lyrics) %>% 
+  str_detect(pattern = "midnight") %>% 
+  sum()
+
+```
+
+
+### Regular Expressions
+
+
+```{r}
+
+fruit <- c("Apple","Strawberry","Banana","Pear","Blackberry","*berry")
+str_view(fruit,pattern = "an")
+
+
+```
+
+```{r}
+str_view(fruit,"\\wberry", html = TRUE)
+str_view(fruit, "[:alpha:]berry", html = TRUE)
+
+str_view(fruit, "\\*berry", html = TRUE)
+str_view(fruit, "\\*berry")
+
+```
+
+
+### anchoring
+
+beginning : \^ end: \$
+
+
+```{r}
+str_view(fruit, "^B")  # starts with B
+
+str_view(fruit,"y$")  # ends with y
+
+## replace all four letter words that begin with "a" with "foo"
+## in programming foo is a placeholder for any function
+## "." (period) is a placeholder for any character
+
+x <- c("apple", "barn", "ape", "cart", "alas", "pain", "ally")
+str_replace(x, pattern = "^a...$", replacement = "foo")
+str_view(x, pattern = "^a...$")
+
+
+
+```
+
+
+### Special Characters
+
+\n new line \s or \[:space:\] any whitespace \d or \[:digit:\] any digit \w \[\[:alpha:\] any word or character \[:punct:\] any punctuation . every character except new line
+
+
+```{r}
+phones <- c("Abba: 555-1234", "Anna: 555-0987", "Andy: 555-7654")
+
+#  \d <- digits
+
+str_view(phones, pattern = "\\d\\d\\d-\\d\\d\\d\\d")
+str_view(phones, pattern = "\\d\\d\\d-\\d\\d\\d\\d", html = TRUE)
+
+# \s [:space:] <- whitespace
+
+str_view(phones, pattern = "\\s")
+
+str_view(phones, pattern = "\\s",html = TRUE)
+
+
+
+```
+
+
+### Alternates
+
+
+```{r}
+str_view(phones, "A..a")
+str_view(phones, "A[bn][bn]a") # any character in the squared bracket is valid
+str_view(phones, "A[^b]") # ^ means not
+
+str_view(phones, "An(na|dy)")  # using () means it can be just one or the other not both
+
+str_view(phones, "(?i)an(na|dy)")  # (?i <- ignore case)
+
+
+```
+
+
+### quantifiers
+
+?, 0 or 1 time +, 1 or more times \*, 0 or more times
+
+
+```{r}
+
+str_view(phones, "\\d+")
+
+str_view(phones, "\\d?")
+
+x <- c("A", "AA", "AAA","AAAA", "B", "BB")
+str_view(x, "^A?")
+str_view(x, "^A+")
+
+str_view("color and colour", "colou?r") # match if it contains "u" 0 or 1 time
+
+
+
+```
+
+
+{n} exactly n {n,} n or more {0,n} at most, n {n,m} between n & m times
+
+
+```{r}
+str_view(phones, "\\d{3}-\\d{4}")
+str_view(phones, "\\d*-\\d*")
+
+```
+
+
+regular expression are greedy
+
+
+```{r}
+love <- "Would I rather be feared or loved? Easy. Both. I want people to be afraid of how much they love me."
+
+str_view(love, "love.*") ## the "." after love represents any character
+str_view(love, "love.?")
+
+```
+
+```{r}
+
+
+love <- "Would I rather be feared or loved? Easy. Both. I want people to be afraid of how much they love me."
+
+## replace love or loved with X
+
+str_replace_all(love, pattern = "love[:alpha:]?", replacement = "X")
+
+
+
+```
+
+```{r}
+# replace strings with 3 consonants in a row at the start of a word
+
+x1 <- c("string", "priority","value", "distinction")
+str_view(x1, "^[^aeiou]{3,}")
+
+```
+

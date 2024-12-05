@@ -1,0 +1,109 @@
+---
+title: "SERRA AKSOY TUTORIAL"
+editor: visual
+date: "`r Sys.Date()`"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+theme_set(theme_bw())
+job_listings <- read_csv("ai_ml_jobs_linkedin.csv")
+
+```
+
+```{r}
+job_listings %>% 
+  map_dbl(~sum(is.na(.x)))
+
+
+
+pmap_dbl(job_listings, ~ sum(is.na(c(...)))) ## to get row NAs
+
+job_listings <- na.omit(job_listings)
+
+```
+
+```{r}
+job_listings <- job_listings %>% 
+  mutate(publishedAt = ymd(publishedAt))
+
+job_listings %>% 
+  ggplot(aes(x = publishedAt))+
+  geom_line(stat = "count")+
+  labs(y = "Number of Job Listings",
+       x = "Date Published")
+
+```
+
+```{r}
+experience_level <- job_listings %>% 
+  group_by(experienceLevel) %>% 
+  summarize(count = n()) %>% 
+  mutate(proportion = count/sum(count)) %>% 
+  arrange(desc(proportion))
+
+experience_level
+
+```
+
+```{r}
+
+job_title_counts <- job_listings %>% 
+  group_by(title) %>% 
+  summarize(count = n()) %>% 
+  arrange(desc(count))
+
+top_10_job_titles <- job_title_counts %>% 
+  head(10)
+
+top_10_job_titles
+
+```
+
+```{r}
+top_10_job_titles %>% 
+  ggplot(aes(x = reorder(title,-count), y= count,fill = title))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(x = "Job Title", y = "Count")+
+  scale_fill_viridis_d(option = "viridis")+
+  theme(legend.position = "none")
+
+
+```
+
+```{r}
+job_listings <- job_listings %>% 
+  mutate(applicationsCount = as.numeric(str_extract(applicationsCount,"\\d+")))
+
+job_listings %>% 
+  ggplot(aes(x =applicationsCount))+
+  geom_histogram(bins = 30, color = "black",fill = "lightgrey")+
+  labs(x = "Number of Applications", y = "Frequency")
+```
+
+```{r}
+location_counts <- job_listings %>% 
+  group_by(location) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) 
+
+top_10_locations <- location_counts %>% head(10)
+
+top_10_locations %>% 
+  ggplot(aes(x = reorder(location,-count), y= count,fill= location))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(x = "Location", y= "Count")+
+  scale_fill_viridis_d(option = "viridis")+
+  theme(legend.position = "none")
+
+```
+
+```{r}
+movies <- read_csv("movies.csv")
+
+
+```

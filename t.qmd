@@ -1,0 +1,37 @@
+---
+title: "k"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+
+theme_set(theme_bw())
+pbctrial<- read_csv("pbctrial.csv")
+head(pbctrial)
+
+pbctrial %>% 
+  ggplot(aes(x = sex, y = ageyr, fill = sex))+
+  geom_boxplot()
+```
+
+```{r}
+library(gmodels)
+
+
+
+Sex <- pbctrial$sex
+Drug <- pbctrial$drug
+CrossTable(Sex,Drug)
+
+ct <- table(pbctrial$sex,pbctrial$drug)
+margin.table(ct,margin = c(1,2))
+
+tab <- table(Sex,Drug) 
+margin.table(tab,margin = c(1,2))
+```
+
+)\

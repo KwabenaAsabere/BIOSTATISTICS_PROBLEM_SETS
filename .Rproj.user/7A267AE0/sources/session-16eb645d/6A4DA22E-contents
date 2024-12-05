@@ -1,0 +1,8 @@
+## load needed libraries
+library(tidyverse)
+
+
+### load mtcars data
+data(mtcars)
+
+### create a scatterplot of disp amd mpg in ggplot2

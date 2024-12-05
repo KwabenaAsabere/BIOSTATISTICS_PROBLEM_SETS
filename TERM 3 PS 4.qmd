@@ -1,0 +1,237 @@
+---
+title: "TERM 3 PS4"
+format: html
+df-print: kable
+fig-width: 6
+fig-asp: 0.618
+code-overflow: wrap
+execute: 
+  echo: true
+  warning: false
+  message: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| label: loading libraries
+
+library(tidyverse)
+library(broom)
+library(finalfit)
+library(gtsummary)
+library(kableExtra)
+theme_set(theme_bw())
+
+
+```
+
+```{r}
+nepalibf <- read_csv("nepalibf.csv")
+head(nepalibf)
+str(nepalibf)
+
+```
+
+
+### Recoding the dataset
+```{r}
+nepalibf <- nepalibf %>% 
+  mutate(bf_factor = factor(bf) %>% 
+          fct_recode("Yes" = "1",
+                     "No" = "0") %>% 
+           ff_label("Breast feeding"),
+         
+         sex_factor = factor(sex_chld) %>% 
+           fct_recode("Male" = "0",
+                      "Female" = "1") %>% 
+           fct_relevel("Male") %>% 
+           ff_label("Sex of child"),
+         
+         age_chld =  ff_label(age_chld, "Child's age (months)"),
+         age_mom = ff_label(age_mom, "Mother's age (years)"),
+         parity = ff_label(parity, "Mother's parity")
+             
+            )
+
+
+```
+
+### Exploratory Data Analysis
+
+```{r}
+#| label: tbl-table one
+#| tbl-cap: Table One
+
+
+
+nepalibf %>% 
+  select(sex_factor,age_chld,age_mom,parity,bf_factor) %>% 
+  tbl_summary(
+    by = bf_factor,
+    statistic =
+      list( all_categorical() ~ "{n} ({p}%)",
+            all_continuous() ~ "{mean} ({sd})"),
+    digits = 
+      list(all_continuous() ~ 0, 
+           all_categorical() ~ 0)
+       ) %>% 
+  add_overall() %>% 
+  bold_labels() %>% 
+  italicize_levels() %>% 
+  modify_spanning_header(
+    update = all_stat_cols() ~ "**Breast feeding**"
+  ) %>% 
+  modify_footnote(
+    update = all_stat_cols() ~ "*mean(standard deviation) for continuous variables;
+    n(%) for categorical variables*"
+  )
+  
+```
+
+```{r}
+#| label: fig-Boxplots
+#| fig-cap: Boxplots
+#| fig-subcap: 
+#| - Age of child
+#| - Age of mother
+#| - Parity
+#| layout-ncol: 2
+
+nepalibf %>% filter(!is.na(bf_factor)) %>% 
+  ggplot(aes(x = bf_factor, y =  age_chld, fill = bf_factor))+
+  geom_boxplot()+
+  labs( y = " Age of Child (months)", x = "Breast feeding status")+
+  theme(legend.position = "none")
+
+
+nepalibf %>% filter(!is.na(bf_factor)) %>% 
+  ggplot(aes(x = bf_factor, y =  age_mom, fill = bf_factor))+
+  geom_boxplot()+
+  labs( y = " Age of Mother (years)", x = "Breast feeding status")+
+  theme(legend.position = "none")
+
+nepalibf %>% filter(!is.na(bf_factor)) %>% 
+  ggplot(aes(x = bf_factor, y =  age_chld, fill = bf_factor))+
+  geom_boxplot()+
+  labs( y = "Parity", x = "Breast feeding status")+
+  theme(legend.position = "none")
+
+```
+
+```{r}
+nepalibf <- nepalibf %>% 
+  mutate(age_chld_ctrd = age_chld - mean(age_chld, na.rm = TRUE))
+
+model1 <- nepalibf %>% 
+  glm(bf_factor ~ sex_chld + age_chld_ctrd, family = binomial(link = "logit"), data = .)
+
+model1 %>% 
+  tidy(conf.int = TRUE, exponentiate = TRUE)
+
+dependent <- "bf_factor"
+explanatory <- c("age_chld_ctrd","sex_factor")
+explanatory_int <- c("age_chld_ctrd","sex_factor","age_chld_ctrd:sex_factor")
+
+model2 <- nepalibf %>% 
+  finalfit(dependent,explanatory, metrics = TRUE)
+
+
+knitr::kable(model2[[1]], row.names = FALSE,align=c("l", "l", "r", "r", "r", "r"))
+
+
+
+model3 <- nepalibf %>% 
+  glm(bf_factor ~ sex_chld *age_chld_ctrd, family = binomial(link = "logit"), data = .)
+
+model3 %>% 
+  tidy(conf.int = TRUE, exponentiate = TRUE)
+
+model4 <- nepalibf %>% 
+  finalfit(dependent,explanatory_int, metrics = TRUE)
+knitr::kable(model4[[1]], row.names = FALSE,align=c("l", "l", "r", "r", "r", "r"))
+
+
+model5 <- nepalibf %>% 
+  finalfit(dependent,explanatory,explanatory_int,
+           keep_models = TRUE,metrics = TRUE)
+knitr::kable(model5[[1]], row.names = FALSE,align=c("l", "l", "r", "r", "r", "r","r"))
+
+nepalibf %>%
+or_plot(dependent,explanatory_int,
+breaks = c(0.25,0.5,1.0,1.25),
+table_text_size = 3.5,
+title_text_size = 16)
+
+
+
+```
+
+
+```{r}
+#| label: fig-prevalence of breastfeeding
+#| fig-cap: Predicted prevalence of breastfeeding 
+
+model6 <- nepalibf %>% na.omit() %>% 
+   glm(bf_factor ~ sex_factor + age_chld, family = binomial(link = "logit"), data = .)
+
+nepalibf <- nepalibf %>% na.omit() %>% 
+  mutate(phat = predict(model6, type = "response"))
+
+nepalibf %>% 
+  ggplot(aes(x = age_chld, y = phat, color = sex_factor, shape = sex_factor))+
+  geom_point()+
+  labs(x = "Child's age in months", y = "Predicted prevalence of Breast feeding",
+       color = "Sex", shape = "Sex")
+ # scale_color_viridis_d(option = "viridis")
+  
+
+
+```
+
+```{r}
+nepalibf <- nepalibf %>% 
+  mutate(odds_bf = exp(phat),
+         bf_prob = odds_bf/(1+odds_bf))
+  
+nepalibf %>% 
+ggplot(aes(x = age_chld, y = bf_prob, color = sex_factor))+
+  geom_point()+
+  labs(x = "Child's age in months", y = "Predicted odds of Breast feeding")
+
+
+```
+
+
+
+
+```{r}
+nepalibf %>% 
+ggplot()+
+  geom_point(aes(x = age_chld, y =odds_bf))+
+  geom_point(aes(x = age_chld, y = bf_prob))+
+  labs(x = "Child's age in months", y = "Predicted odds of Breast feeding")
+
+nepalibf %>% 
+ggplot()+
+  #geom_point(aes(x = age_chld, y =odds_bf))+
+  geom_point(aes(x = age_chld, y = bf_prob, color = sex_factor))+
+  labs(x = "Child's age in months", y = "Predicted odds of Breast feeding")+
+  #scale_color_viridis_d(option = "viridis")+
+  scale_color_manual(values = c("blue","red"))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

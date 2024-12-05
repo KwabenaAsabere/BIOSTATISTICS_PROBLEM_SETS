@@ -1,0 +1,255 @@
+---
+title: "STRINGS"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+drakesongs <- read_csv("drake_data.csv")
+
+```
+
+```{r}
+
+
+drakesongs <- 
+  drakesongs %>% 
+  mutate(contains_fuck = str_detect(lyrics, pattern= "fuck"),
+         fuck_count = str_count(lyrics, pattern = "fuck")) 
+
+drakesongs <- drakesongs %>% filter(!is.na(contains_fuck))  
+  
+  
+  drakesongs %>%  summarize(total_fuck = sum(fuck_count),
+            max_fuck = max(fuck_count))
+
+
+
+
+drakesongs %>% 
+  slice_max(fuck_count, n = 1) %>% 
+  select(lyrics_title,fuck_count)
+
+
+
+
+
+
+
+
+convert_views <- function(views) {
+ 
+  if (str_detect(views, "K$")) {
+    return(as.numeric(str_replace(views, "K$", "")) * 1e3)
+  } else if (str_detect(views, "M$")) {
+    return(as.numeric(str_replace(views, "M$", "")) * 1e6)
+  } else {
+    return(as.numeric(views))
+  }
+}
+
+drakesongs <- drakesongs %>% na.omit() %>% 
+  mutate(views_songs = map(track_views,convert_views))
+
+
+drake_tracks <- read_csv("drake_data.csv")
+
+drake_tracks <- drake_tracks %>% 
+  mutate(song_views = if_else(
+    str_detect(track_views, "K$"),as.numeric(str_replace(track_views,"K$",""))*1e3,
+    if_else(
+      str_detect(track_views, "M$"),as.numeric(str_replace(track_views,"M$",""))*1e6,
+      as.numeric(track_views)
+    )
+  ))
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,167 @@
+---
+title: "EVALUATION OF MODEL PERFORMANCE"
+author: "K.ASABERE"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+tidymodels_prefer()
+theme_set(theme_bw())
+ ames <- ames
+
+set.seed(502) 
+
+```
+
+```{r}
+set.seed(1003)
+
+ames_split <- initial_split(ames,prop = 0.8)
+ames_train <- training(ames_split)
+ames_test <- testing(ames_split)
+
+```
+
+\### Recipe object
+
+```{r}
+ames_rec <- ames_train %>% 
+  recipe(Sale_Price ~ Neighborhood + Gr_Liv_Area + Year_Built + Bldg_Type +Latitude + Longitude,data = .)%>%
+  step_log(Gr_Liv_Area,base = 10) %>% 
+  step_other(Neighborhood,threshold = 0.01) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_interact(~Gr_Liv_Area:starts_with("Bldg_Type_")) %>% 
+  step_ns(Latitude,Longitude, deg_free = 20)
+
+
+```
+
+\### Model and Workflow
+
+```{r}
+lm_model <- linear_reg() %>% set_engine("lm")
+
+lm_wflow <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(ames_rec)
+
+lm_fit <- fit(lm_wflow,ames_train)
+lm_fit
+
+```
+
+\### Make predictions
+
+```{r}
+ames_test_res <- predict(lm_fit,new_data = ames_test %>% select(-Sale_Price))
+
+ames_test_res <- bind_cols(ames_test_res,ames_test %>% select(Sale_Price))
+
+head(ames_test_res, n =10)
+
+```
+
+```{r}
+ames_test_res %>% 
+  ggplot(aes(x = log(Sale_Price), y= log(.pred)))+
+  geom_abline(lty =2)+
+  geom_point(alpha = 0.5)+
+  coord_obs_pred()+# scale and size the x and y axis uniformly
+ labs(y = "Predicted sale price (log)", x = "Sale price (log)")
+
+```
+
+\### Model metrics model metrics are useful for comparing different models
+
+```{r}
+
+rmse(ames_test_res,truth = Sale_Price, estimate = .pred)
+
+ames_metrics <- metric_set(rmse,rsq,mae)
+ames_metrics(ames_test_res,truth = Sale_Price, estimate = .pred)
+
+```
+
+### random forest regression
+
+```{r}
+rf_model <- rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("regression")
+
+rf_wkflow <- 
+  workflow() %>% 
+  add_formula(Sale_Price ~ Neighborhood + Gr_Liv_Area + Year_Built + Bldg_Type +Latitude + Longitude) %>% 
+  add_model(rf_model)
+
+rf_fit <- rf_wkflow %>% fit(data = ames_train)
+rf_fit
+
+
+```
+
+\### Estimating RMSE for the Random Forest on the test data
+
+```{r}
+ames_rf_test_res <- predict(rf_fit,new_data = ames_test %>% select(-Sale_Price))
+
+ames_rf_test_res <- bind_cols(ames_rf_test_res,ames_test %>% select(Sale_Price))
+
+rmse(ames_rf_test_res,truth = Sale_Price, estimate = .pred)
+
+ames_rf_metrics<- metric_set(rmse,rsq,mae)
+ames_rf_metrics(ames_rf_test_res,truth = Sale_Price, estimate = .pred)
+
+
+
+
+
+```
+
+\### Resampling methods for evaluating model performance
+
+\#### V-fold cross validation We use the function `vfold_cv()`to create splits of the training data for 10-fold cross validation
+
+```{r}
+set.seed(1001)
+ames_fold <- vfold_cv(ames_train,v = 10)
+ames_fold
+
+```
+
+\#### Cross validation control options
+
+```{r}
+## save_pred is a logical for saving assessment set predictions
+keep_pred <- control_resamples(save_pred = TRUE, save_workflow = TRUE)
+```
+
+\#### Fitting random forest to v_folds
+
+```{r}
+set.seed(1003)
+rf_res <- rf_wkflow %>% 
+  fit_resamples(resamples = ames_fold,control = keep_pred)
+
+rf_res$.metrics[[1]]
+rf_res$.metrics[[10]]
+
+collect_metrics(rf_res)
+
+```
+
+```{r}
+
+rf_vfold_preds <- rf_res %>% collect_predictions()
+rf_vfold_preds %>% 
+  ggplot(aes(x = log10(Sale_Price), y= log10(.pred)))+
+  geom_abline(lty = 2, linewidth = 1, color = "red")+
+  geom_point(alpha = 0.5)+
+  labs( x = "Sale Price(log)", y= "Predicted Sale Price(log)")+
+  coord_obs_pred()
+
+```

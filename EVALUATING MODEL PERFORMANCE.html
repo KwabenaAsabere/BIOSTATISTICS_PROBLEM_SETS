@@ -1,0 +1,2993 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.553">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="K.ASABERE">
+
+<title>EVALUATION OF MODEL PERFORMANCE</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="EVALUATING MODEL PERFORMANCE_files/libs/clipboard/clipboard.min.js"></script>
+<script src="EVALUATING MODEL PERFORMANCE_files/libs/quarto-html/quarto.js"></script>
+<script src="EVALUATING MODEL PERFORMANCE_files/libs/quarto-html/popper.min.js"></script>
+<script src="EVALUATING MODEL PERFORMANCE_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="EVALUATING MODEL PERFORMANCE_files/libs/quarto-html/anchor.min.js"></script>
+<link href="EVALUATING MODEL PERFORMANCE_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="EVALUATING MODEL PERFORMANCE_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="EVALUATING MODEL PERFORMANCE_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="EVALUATING MODEL PERFORMANCE_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="EVALUATING MODEL PERFORMANCE_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">EVALUATION OF MODEL PERFORMANCE</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>K.ASABERE </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tidymodels_prefer</span>()</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_bw</span>())</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a> ames <span class="ot">&lt;-</span> ames</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">502</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ames_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(ames,<span class="at">prop =</span> <span class="fl">0.8</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ames_train <span class="ot">&lt;-</span> <span class="fu">training</span>(ames_split)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ames_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(ames_split)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>### Recipe object</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ames_rec <span class="ot">&lt;-</span> ames_train <span class="sc">%&gt;%</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">recipe</span>(Sale_Price <span class="sc">~</span> Neighborhood <span class="sc">+</span> Gr_Liv_Area <span class="sc">+</span> Year_Built <span class="sc">+</span> Bldg_Type <span class="sc">+</span>Latitude <span class="sc">+</span> Longitude,<span class="at">data =</span> .)<span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_log</span>(Gr_Liv_Area,<span class="at">base =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_other</span>(Neighborhood,<span class="at">threshold =</span> <span class="fl">0.01</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_interact</span>(<span class="sc">~</span>Gr_Liv_Area<span class="sc">:</span><span class="fu">starts_with</span>(<span class="st">"Bldg_Type_"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_ns</span>(Latitude,Longitude, <span class="at">deg_free =</span> <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>### Model and Workflow</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>lm_model <span class="ot">&lt;-</span> <span class="fu">linear_reg</span>() <span class="sc">%&gt;%</span> <span class="fu">set_engine</span>(<span class="st">"lm"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>lm_wflow <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(lm_model) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(ames_rec)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>lm_fit <span class="ot">&lt;-</span> <span class="fu">fit</span>(lm_wflow,ames_train)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>lm_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>══ Workflow [trained] ══════════════════════════════════════════════════════════
+Preprocessor: Recipe
+Model: linear_reg()
+
+── Preprocessor ────────────────────────────────────────────────────────────────
+5 Recipe Steps
+
+• step_log()
+• step_other()
+• step_dummy()
+• step_interact()
+• step_ns()
+
+── Model ───────────────────────────────────────────────────────────────────────
+
+Call:
+stats::lm(formula = ..y ~ ., data = data)
+
+Coefficients:
+                                         (Intercept)  
+                                          -2015502.8  
+                                         Gr_Liv_Area  
+                                            246499.2  
+                                          Year_Built  
+                                               723.7  
+                          Neighborhood_College_Creek  
+                                              5121.2  
+                               Neighborhood_Old_Town  
+                                             -5917.3  
+                                Neighborhood_Edwards  
+                                            -16493.5  
+                               Neighborhood_Somerset  
+                                             70290.1  
+                     Neighborhood_Northridge_Heights  
+                                            113644.6  
+                                Neighborhood_Gilbert  
+                                             28932.9  
+                                 Neighborhood_Sawyer  
+                                            -27816.7  
+                         Neighborhood_Northwest_Ames  
+                                             34368.2  
+                            Neighborhood_Sawyer_West  
+                                            -33842.0  
+                               Neighborhood_Mitchell  
+                                            -13139.1  
+                              Neighborhood_Brookside  
+                                              5066.0  
+                               Neighborhood_Crawford  
+                                            100885.1  
+                 Neighborhood_Iowa_DOT_and_Rail_Road  
+                                             15534.8  
+                             Neighborhood_Timberland  
+                                             42531.6  
+                             Neighborhood_Northridge  
+                                             75195.1  
+                            Neighborhood_Stone_Brook  
+                                            157352.9  
+Neighborhood_South_and_West_of_Iowa_State_University  
+                                             30135.2  
+                            Neighborhood_Clear_Creek  
+                                             -1162.0  
+                         Neighborhood_Meadow_Village  
+                                            -37298.2  
+                              Neighborhood_Briardale  
+
+...
+and 100 more lines.</code></pre>
+</div>
+</div>
+<p>### Make predictions</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ames_test_res <span class="ot">&lt;-</span> <span class="fu">predict</span>(lm_fit,<span class="at">new_data =</span> ames_test <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Sale_Price))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>ames_test_res <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(ames_test_res,ames_test <span class="sc">%&gt;%</span> <span class="fu">pull</span>(Sale_Price))</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>ames_test_res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">.pred</th>
+<th style="text-align: right;">…2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">203870.86996</td>
+<td style="text-align: right;">244000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">365850.59722</td>
+<td style="text-align: right;">394432</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">119390.32228</td>
+<td style="text-align: right;">141000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">157433.87734</td>
+<td style="text-align: right;">146000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">312572.60902</td>
+<td style="text-align: right;">275000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">171742.18593</td>
+<td style="text-align: right;">184500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">292036.49179</td>
+<td style="text-align: right;">290000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">334725.52511</td>
+<td style="text-align: right;">410000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">234244.97950</td>
+<td style="text-align: right;">262500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">264190.50263</td>
+<td style="text-align: right;">254900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">103503.58350</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">104929.89486</td>
+<td style="text-align: right;">99500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">87963.65498</td>
+<td style="text-align: right;">125000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">205739.72955</td>
+<td style="text-align: right;">194500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">153857.80023</td>
+<td style="text-align: right;">152000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">155842.95840</td>
+<td style="text-align: right;">112000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">138816.06599</td>
+<td style="text-align: right;">148000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">243663.36720</td>
+<td style="text-align: right;">267916</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">116400.60073</td>
+<td style="text-align: right;">155000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">173173.75958</td>
+<td style="text-align: right;">130500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">212108.92988</td>
+<td style="text-align: right;">196500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">194249.75098</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">184283.02021</td>
+<td style="text-align: right;">178900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">133608.38734</td>
+<td style="text-align: right;">137500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">105332.05962</td>
+<td style="text-align: right;">116500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">110257.00668</td>
+<td style="text-align: right;">128000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">130386.72969</td>
+<td style="text-align: right;">178000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">202712.18088</td>
+<td style="text-align: right;">214000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">161015.65286</td>
+<td style="text-align: right;">167500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">185041.27787</td>
+<td style="text-align: right;">159500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">136857.30819</td>
+<td style="text-align: right;">135000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">104379.54727</td>
+<td style="text-align: right;">107500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">125149.07778</td>
+<td style="text-align: right;">144900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">109516.03191</td>
+<td style="text-align: right;">129000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">140305.73940</td>
+<td style="text-align: right;">154000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">157346.10392</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">140480.93316</td>
+<td style="text-align: right;">107400</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">173072.15468</td>
+<td style="text-align: right;">240000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">149912.64809</td>
+<td style="text-align: right;">149700</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">114751.07992</td>
+<td style="text-align: right;">134000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">147622.99409</td>
+<td style="text-align: right;">139900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">217286.53125</td>
+<td style="text-align: right;">244400</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">190644.38856</td>
+<td style="text-align: right;">173000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">158420.26290</td>
+<td style="text-align: right;">121500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">179804.78788</td>
+<td style="text-align: right;">158000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">144720.75353</td>
+<td style="text-align: right;">160250</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">212260.92161</td>
+<td style="text-align: right;">260000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">218186.83963</td>
+<td style="text-align: right;">230000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">123713.62503</td>
+<td style="text-align: right;">129000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">150729.65533</td>
+<td style="text-align: right;">114000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">90712.10686</td>
+<td style="text-align: right;">84900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">231251.44361</td>
+<td style="text-align: right;">236000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">153499.81257</td>
+<td style="text-align: right;">147000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">223498.63571</td>
+<td style="text-align: right;">200500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">180261.12850</td>
+<td style="text-align: right;">161750</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">127959.48345</td>
+<td style="text-align: right;">100000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">109728.09113</td>
+<td style="text-align: right;">90000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">76592.79687</td>
+<td style="text-align: right;">80000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">155426.44901</td>
+<td style="text-align: right;">128000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">44658.29855</td>
+<td style="text-align: right;">58500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">148288.80114</td>
+<td style="text-align: right;">160000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">137192.66784</td>
+<td style="text-align: right;">162500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">55727.33371</td>
+<td style="text-align: right;">50138</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">218007.07556</td>
+<td style="text-align: right;">201000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">99368.38549</td>
+<td style="text-align: right;">85500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">179493.05984</td>
+<td style="text-align: right;">161000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">305407.22320</td>
+<td style="text-align: right;">240000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">172169.19889</td>
+<td style="text-align: right;">178000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">171182.26278</td>
+<td style="text-align: right;">181316</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">166585.77159</td>
+<td style="text-align: right;">174000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">213091.18416</td>
+<td style="text-align: right;">225000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">240758.60882</td>
+<td style="text-align: right;">260000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">250804.55073</td>
+<td style="text-align: right;">249000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">147558.95665</td>
+<td style="text-align: right;">152000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">144657.60963</td>
+<td style="text-align: right;">167900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">149063.79448</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">118353.26889</td>
+<td style="text-align: right;">120500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">86091.60026</td>
+<td style="text-align: right;">118000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">173285.26386</td>
+<td style="text-align: right;">147000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">156335.86010</td>
+<td style="text-align: right;">148500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">183227.80183</td>
+<td style="text-align: right;">138000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">366919.00823</td>
+<td style="text-align: right;">253293</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">361878.17051</td>
+<td style="text-align: right;">335000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">412085.35572</td>
+<td style="text-align: right;">582933</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">341768.29509</td>
+<td style="text-align: right;">360000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">320183.95788</td>
+<td style="text-align: right;">324000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">270307.15239</td>
+<td style="text-align: right;">233170</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">372579.06526</td>
+<td style="text-align: right;">552000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">220486.77586</td>
+<td style="text-align: right;">173000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">211473.21144</td>
+<td style="text-align: right;">174000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">168657.31169</td>
+<td style="text-align: right;">180000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">210182.40210</td>
+<td style="text-align: right;">200000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">175055.59090</td>
+<td style="text-align: right;">170000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">205539.86312</td>
+<td style="text-align: right;">179000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">239219.00029</td>
+<td style="text-align: right;">245000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">250777.39602</td>
+<td style="text-align: right;">210000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">223086.69336</td>
+<td style="text-align: right;">208300</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">234143.71614</td>
+<td style="text-align: right;">250000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">259346.44171</td>
+<td style="text-align: right;">370878</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">236485.04104</td>
+<td style="text-align: right;">238500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">166797.36189</td>
+<td style="text-align: right;">159000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">204278.39534</td>
+<td style="text-align: right;">193000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">187382.02797</td>
+<td style="text-align: right;">189000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">202288.40345</td>
+<td style="text-align: right;">171500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">108102.08661</td>
+<td style="text-align: right;">141000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">111341.14253</td>
+<td style="text-align: right;">62383</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">184125.36323</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">196741.97885</td>
+<td style="text-align: right;">161500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">157600.81706</td>
+<td style="text-align: right;">154000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">124358.97964</td>
+<td style="text-align: right;">124500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">68399.38119</td>
+<td style="text-align: right;">82500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">173659.05351</td>
+<td style="text-align: right;">175000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">113861.54829</td>
+<td style="text-align: right;">147000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">122915.01663</td>
+<td style="text-align: right;">124000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">137953.51248</td>
+<td style="text-align: right;">150000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">131358.54949</td>
+<td style="text-align: right;">149500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">153463.46637</td>
+<td style="text-align: right;">144000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">161992.23565</td>
+<td style="text-align: right;">176000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">146195.75253</td>
+<td style="text-align: right;">123000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">110497.58260</td>
+<td style="text-align: right;">132000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">67249.35660</td>
+<td style="text-align: right;">109500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">165434.39715</td>
+<td style="text-align: right;">154000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">90999.22876</td>
+<td style="text-align: right;">92900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">113104.34330</td>
+<td style="text-align: right;">93000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">137231.00195</td>
+<td style="text-align: right;">129500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">143452.96288</td>
+<td style="text-align: right;">87500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">133319.08717</td>
+<td style="text-align: right;">146500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">150650.95768</td>
+<td style="text-align: right;">223500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">126058.96711</td>
+<td style="text-align: right;">100000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">148884.97134</td>
+<td style="text-align: right;">133000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">77593.75689</td>
+<td style="text-align: right;">60000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">88994.62348</td>
+<td style="text-align: right;">105000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">119471.56958</td>
+<td style="text-align: right;">62500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">105124.14175</td>
+<td style="text-align: right;">97500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">73091.51654</td>
+<td style="text-align: right;">88750</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">156048.12737</td>
+<td style="text-align: right;">179000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">143538.00368</td>
+<td style="text-align: right;">159900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">166330.34527</td>
+<td style="text-align: right;">175000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">67355.12535</td>
+<td style="text-align: right;">63900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">79580.76277</td>
+<td style="text-align: right;">82500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">231032.42669</td>
+<td style="text-align: right;">190000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">203368.76250</td>
+<td style="text-align: right;">139600</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">165146.72122</td>
+<td style="text-align: right;">131000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">114085.39575</td>
+<td style="text-align: right;">105000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">129865.52319</td>
+<td style="text-align: right;">108000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">233219.33695</td>
+<td style="text-align: right;">271900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">135022.69635</td>
+<td style="text-align: right;">148325</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">259652.57945</td>
+<td style="text-align: right;">323262</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">255724.05380</td>
+<td style="text-align: right;">297000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">200981.31666</td>
+<td style="text-align: right;">173000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">217422.83223</td>
+<td style="text-align: right;">275000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">201130.90725</td>
+<td style="text-align: right;">207000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">149670.58528</td>
+<td style="text-align: right;">138000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">200707.14906</td>
+<td style="text-align: right;">204000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">196697.81561</td>
+<td style="text-align: right;">187100</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">205703.85194</td>
+<td style="text-align: right;">201000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">136269.76892</td>
+<td style="text-align: right;">123000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">121285.62353</td>
+<td style="text-align: right;">133000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">216447.61315</td>
+<td style="text-align: right;">250000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">121253.42137</td>
+<td style="text-align: right;">144000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">215992.81035</td>
+<td style="text-align: right;">173500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">211721.29694</td>
+<td style="text-align: right;">170000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">162661.92844</td>
+<td style="text-align: right;">159500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">159523.10848</td>
+<td style="text-align: right;">103500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">183090.86209</td>
+<td style="text-align: right;">160000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">140701.84168</td>
+<td style="text-align: right;">163500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">211408.07265</td>
+<td style="text-align: right;">193000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">181724.06906</td>
+<td style="text-align: right;">158500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">133377.10435</td>
+<td style="text-align: right;">137000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">119338.70759</td>
+<td style="text-align: right;">121000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">90722.18347</td>
+<td style="text-align: right;">78000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">167259.35922</td>
+<td style="text-align: right;">126000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">182534.16777</td>
+<td style="text-align: right;">173000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">189002.41572</td>
+<td style="text-align: right;">137500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">249109.04084</td>
+<td style="text-align: right;">204000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">278732.49783</td>
+<td style="text-align: right;">425000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">191631.05733</td>
+<td style="text-align: right;">115000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">91138.92608</td>
+<td style="text-align: right;">91000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">126273.32396</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">178401.75266</td>
+<td style="text-align: right;">160000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">115527.30427</td>
+<td style="text-align: right;">131900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">146923.61625</td>
+<td style="text-align: right;">131250</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">126217.82679</td>
+<td style="text-align: right;">149000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">165648.89408</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">192106.26214</td>
+<td style="text-align: right;">196000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">185037.14543</td>
+<td style="text-align: right;">173000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">165675.19946</td>
+<td style="text-align: right;">177900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">254238.67963</td>
+<td style="text-align: right;">180000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">239606.45790</td>
+<td style="text-align: right;">189000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">401538.20468</td>
+<td style="text-align: right;">325000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">159936.42728</td>
+<td style="text-align: right;">133000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">207959.18273</td>
+<td style="text-align: right;">220000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">254243.57647</td>
+<td style="text-align: right;">306000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">156609.83535</td>
+<td style="text-align: right;">181000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">383814.79807</td>
+<td style="text-align: right;">446261</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">277512.14301</td>
+<td style="text-align: right;">370967</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">247078.37709</td>
+<td style="text-align: right;">219500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">249034.29414</td>
+<td style="text-align: right;">207000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">214081.61352</td>
+<td style="text-align: right;">195000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">210098.96749</td>
+<td style="text-align: right;">219990</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">190644.35559</td>
+<td style="text-align: right;">179000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">230018.99776</td>
+<td style="text-align: right;">217300</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">314811.58785</td>
+<td style="text-align: right;">250000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">294049.62443</td>
+<td style="text-align: right;">291000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">283095.75725</td>
+<td style="text-align: right;">350000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">319409.91391</td>
+<td style="text-align: right;">279500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">302609.90701</td>
+<td style="text-align: right;">350000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">296641.75744</td>
+<td style="text-align: right;">287500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">262572.58317</td>
+<td style="text-align: right;">301500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">258252.21552</td>
+<td style="text-align: right;">240000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">254807.12118</td>
+<td style="text-align: right;">264132</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">234643.79064</td>
+<td style="text-align: right;">227680</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">246235.03062</td>
+<td style="text-align: right;">226700</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">235302.62947</td>
+<td style="text-align: right;">205950</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">252773.16413</td>
+<td style="text-align: right;">207500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">206901.39000</td>
+<td style="text-align: right;">175000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">202324.38188</td>
+<td style="text-align: right;">187000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">106176.65523</td>
+<td style="text-align: right;">119916</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">171434.10244</td>
+<td style="text-align: right;">165000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">189457.66951</td>
+<td style="text-align: right;">146000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">196472.41453</td>
+<td style="text-align: right;">285000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">262223.65468</td>
+<td style="text-align: right;">290000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">254856.00462</td>
+<td style="text-align: right;">205000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">172841.55316</td>
+<td style="text-align: right;">174000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">168960.04433</td>
+<td style="text-align: right;">150000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">130477.15549</td>
+<td style="text-align: right;">145000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">227734.51909</td>
+<td style="text-align: right;">170000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">220809.52556</td>
+<td style="text-align: right;">185000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">123260.60762</td>
+<td style="text-align: right;">98000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">109040.76053</td>
+<td style="text-align: right;">109008</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">138278.41890</td>
+<td style="text-align: right;">140000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">126093.58933</td>
+<td style="text-align: right;">145500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">156256.51335</td>
+<td style="text-align: right;">163000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">167710.20128</td>
+<td style="text-align: right;">185000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">182639.69076</td>
+<td style="text-align: right;">166800</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">168873.57889</td>
+<td style="text-align: right;">166000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">137215.92761</td>
+<td style="text-align: right;">148000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">96799.79053</td>
+<td style="text-align: right;">94000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">115157.04999</td>
+<td style="text-align: right;">98300</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">144392.77576</td>
+<td style="text-align: right;">155000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">165986.16773</td>
+<td style="text-align: right;">150000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">94848.71527</td>
+<td style="text-align: right;">109500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">204384.97716</td>
+<td style="text-align: right;">256000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">80027.62391</td>
+<td style="text-align: right;">115000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">89745.19239</td>
+<td style="text-align: right;">114000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">178894.03308</td>
+<td style="text-align: right;">129500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">132099.05454</td>
+<td style="text-align: right;">129400</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">104833.58031</td>
+<td style="text-align: right;">97000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">134820.22817</td>
+<td style="text-align: right;">115500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">64879.24816</td>
+<td style="text-align: right;">109500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">186729.20839</td>
+<td style="text-align: right;">150000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">159547.50120</td>
+<td style="text-align: right;">136000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">96211.63270</td>
+<td style="text-align: right;">127500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">98538.06370</td>
+<td style="text-align: right;">127000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">102477.56173</td>
+<td style="text-align: right;">135000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">123832.83609</td>
+<td style="text-align: right;">109900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">137227.23527</td>
+<td style="text-align: right;">145000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">165508.45424</td>
+<td style="text-align: right;">152000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">124577.08575</td>
+<td style="text-align: right;">108959</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">155195.65413</td>
+<td style="text-align: right;">165000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">139834.87073</td>
+<td style="text-align: right;">144000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">215637.73842</td>
+<td style="text-align: right;">192000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">196535.68471</td>
+<td style="text-align: right;">245000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">180956.07459</td>
+<td style="text-align: right;">260000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">92461.33740</td>
+<td style="text-align: right;">107500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">82164.25071</td>
+<td style="text-align: right;">79000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">242683.39182</td>
+<td style="text-align: right;">262280</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">200008.02438</td>
+<td style="text-align: right;">195000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">230982.47665</td>
+<td style="text-align: right;">200000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">146673.93414</td>
+<td style="text-align: right;">155000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">225119.39583</td>
+<td style="text-align: right;">235000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">172670.20118</td>
+<td style="text-align: right;">158000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">162020.49736</td>
+<td style="text-align: right;">147000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">236998.18342</td>
+<td style="text-align: right;">235000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">241721.76786</td>
+<td style="text-align: right;">222500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">121034.93799</td>
+<td style="text-align: right;">136500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">203507.83894</td>
+<td style="text-align: right;">208900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">217673.62460</td>
+<td style="text-align: right;">218836</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">113356.19001</td>
+<td style="text-align: right;">118000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">92825.40679</td>
+<td style="text-align: right;">120000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">122484.50690</td>
+<td style="text-align: right;">100000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">181149.77457</td>
+<td style="text-align: right;">179500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">172950.65080</td>
+<td style="text-align: right;">189000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">168933.07731</td>
+<td style="text-align: right;">231000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">174569.51466</td>
+<td style="text-align: right;">104000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">234780.55310</td>
+<td style="text-align: right;">263400</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">77791.59175</td>
+<td style="text-align: right;">126000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">68561.02897</td>
+<td style="text-align: right;">13100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">61729.73907</td>
+<td style="text-align: right;">65000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">172373.26359</td>
+<td style="text-align: right;">100000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">226412.31934</td>
+<td style="text-align: right;">184000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">212345.98318</td>
+<td style="text-align: right;">175000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">231389.95498</td>
+<td style="text-align: right;">232500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">159113.50657</td>
+<td style="text-align: right;">209200</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">93445.97849</td>
+<td style="text-align: right;">98000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">112069.66250</td>
+<td style="text-align: right;">130500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">111924.07448</td>
+<td style="text-align: right;">138000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">207414.11158</td>
+<td style="text-align: right;">244000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">224564.16376</td>
+<td style="text-align: right;">204000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">251792.53427</td>
+<td style="text-align: right;">212000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">193858.82581</td>
+<td style="text-align: right;">182900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">203345.05234</td>
+<td style="text-align: right;">213000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">208084.28450</td>
+<td style="text-align: right;">190000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">172011.71889</td>
+<td style="text-align: right;">152000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">175542.49985</td>
+<td style="text-align: right;">175000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">139529.26019</td>
+<td style="text-align: right;">143250</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">177441.76826</td>
+<td style="text-align: right;">155000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">136049.26248</td>
+<td style="text-align: right;">133000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">141444.72641</td>
+<td style="text-align: right;">119500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">99524.42192</td>
+<td style="text-align: right;">133000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">158424.56081</td>
+<td style="text-align: right;">155000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">97378.41187</td>
+<td style="text-align: right;">113500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">116071.19123</td>
+<td style="text-align: right;">113700</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">132102.43952</td>
+<td style="text-align: right;">122500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">378124.86631</td>
+<td style="text-align: right;">314813</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">365855.09152</td>
+<td style="text-align: right;">322400</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">391654.47337</td>
+<td style="text-align: right;">338931</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">405448.92358</td>
+<td style="text-align: right;">479069</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">359495.13932</td>
+<td style="text-align: right;">440000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">384585.69157</td>
+<td style="text-align: right;">418000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">344245.35593</td>
+<td style="text-align: right;">319500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">365217.08200</td>
+<td style="text-align: right;">354000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">204018.50955</td>
+<td style="text-align: right;">200000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">243949.86750</td>
+<td style="text-align: right;">200000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">216549.53934</td>
+<td style="text-align: right;">176000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">198958.14768</td>
+<td style="text-align: right;">178900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">184488.67431</td>
+<td style="text-align: right;">176485</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">178325.43719</td>
+<td style="text-align: right;">175000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">211171.36851</td>
+<td style="text-align: right;">215000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">215643.15127</td>
+<td style="text-align: right;">211000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">165366.53470</td>
+<td style="text-align: right;">170000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">151244.55608</td>
+<td style="text-align: right;">162000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">416262.56082</td>
+<td style="text-align: right;">745000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">346016.94760</td>
+<td style="text-align: right;">410000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">301328.36323</td>
+<td style="text-align: right;">252000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">401114.05239</td>
+<td style="text-align: right;">755000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">332074.41067</td>
+<td style="text-align: right;">430000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">231410.17343</td>
+<td style="text-align: right;">208900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">292319.21785</td>
+<td style="text-align: right;">340000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">200424.32262</td>
+<td style="text-align: right;">201000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">165275.53753</td>
+<td style="text-align: right;">179200</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">116679.60974</td>
+<td style="text-align: right;">125500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">323112.39883</td>
+<td style="text-align: right;">302000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">329650.84157</td>
+<td style="text-align: right;">285000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">208919.08529</td>
+<td style="text-align: right;">207500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">175720.50478</td>
+<td style="text-align: right;">177000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">190749.25209</td>
+<td style="text-align: right;">279700</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">164586.91558</td>
+<td style="text-align: right;">213750</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">171554.39448</td>
+<td style="text-align: right;">190000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">183166.73860</td>
+<td style="text-align: right;">185000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">209311.93635</td>
+<td style="text-align: right;">188500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">144206.67895</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">140253.06281</td>
+<td style="text-align: right;">140500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">150871.60693</td>
+<td style="text-align: right;">150750</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">121426.42030</td>
+<td style="text-align: right;">114500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">125206.83277</td>
+<td style="text-align: right;">131000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">173953.92221</td>
+<td style="text-align: right;">157900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">145962.89796</td>
+<td style="text-align: right;">120000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">125341.08131</td>
+<td style="text-align: right;">116000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">167528.68099</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">143656.72710</td>
+<td style="text-align: right;">129500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">171923.32003</td>
+<td style="text-align: right;">115000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">96622.11906</td>
+<td style="text-align: right;">112500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">117267.67326</td>
+<td style="text-align: right;">148000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">53206.08586</td>
+<td style="text-align: right;">86000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">131203.79991</td>
+<td style="text-align: right;">128500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">131695.68910</td>
+<td style="text-align: right;">102000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">131523.00308</td>
+<td style="text-align: right;">135000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">121134.75191</td>
+<td style="text-align: right;">152000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">187788.84206</td>
+<td style="text-align: right;">187000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">149488.99838</td>
+<td style="text-align: right;">90000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">173456.24942</td>
+<td style="text-align: right;">185000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">161956.19527</td>
+<td style="text-align: right;">159500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">124233.82597</td>
+<td style="text-align: right;">87000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">120405.26393</td>
+<td style="text-align: right;">104500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">170714.57677</td>
+<td style="text-align: right;">210000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">90305.35473</td>
+<td style="text-align: right;">113000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">138083.23381</td>
+<td style="text-align: right;">132000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">101466.09085</td>
+<td style="text-align: right;">102000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">180503.65474</td>
+<td style="text-align: right;">200000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">130959.52255</td>
+<td style="text-align: right;">153575</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">99914.87547</td>
+<td style="text-align: right;">117000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">123578.35208</td>
+<td style="text-align: right;">139400</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">195302.61027</td>
+<td style="text-align: right;">202500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">165676.65855</td>
+<td style="text-align: right;">212300</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">133003.32772</td>
+<td style="text-align: right;">127000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">138087.33924</td>
+<td style="text-align: right;">137000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">257828.26946</td>
+<td style="text-align: right;">255000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">111405.49466</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">186840.19765</td>
+<td style="text-align: right;">228500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">234349.18097</td>
+<td style="text-align: right;">225000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">225783.87549</td>
+<td style="text-align: right;">228500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">215372.75901</td>
+<td style="text-align: right;">155835</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">230496.87727</td>
+<td style="text-align: right;">207000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">150853.17061</td>
+<td style="text-align: right;">146000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">224715.85524</td>
+<td style="text-align: right;">217500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">195590.73807</td>
+<td style="text-align: right;">226000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">151645.63195</td>
+<td style="text-align: right;">153500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">148643.80626</td>
+<td style="text-align: right;">134900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">148067.72472</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">236449.91868</td>
+<td style="text-align: right;">213000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">240341.24466</td>
+<td style="text-align: right;">240000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">234200.25252</td>
+<td style="text-align: right;">213500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">192875.72198</td>
+<td style="text-align: right;">173500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">116159.04230</td>
+<td style="text-align: right;">122000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">127835.68854</td>
+<td style="text-align: right;">110000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">93498.46835</td>
+<td style="text-align: right;">98500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">129006.17993</td>
+<td style="text-align: right;">150000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">114262.11043</td>
+<td style="text-align: right;">96500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">177231.23440</td>
+<td style="text-align: right;">136500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">175840.50292</td>
+<td style="text-align: right;">145000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">199321.14205</td>
+<td style="text-align: right;">238000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">182425.79551</td>
+<td style="text-align: right;">153500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">227546.89415</td>
+<td style="text-align: right;">201000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">229079.87952</td>
+<td style="text-align: right;">198000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">126751.59701</td>
+<td style="text-align: right;">115000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">69316.78557</td>
+<td style="text-align: right;">87000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">131761.34922</td>
+<td style="text-align: right;">129850</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">150110.10804</td>
+<td style="text-align: right;">150909</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">152259.38337</td>
+<td style="text-align: right;">152000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">90714.67916</td>
+<td style="text-align: right;">68104</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">121202.75153</td>
+<td style="text-align: right;">140000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">93505.26714</td>
+<td style="text-align: right;">124900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">204027.95924</td>
+<td style="text-align: right;">210000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">205242.13868</td>
+<td style="text-align: right;">330000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">254494.58111</td>
+<td style="text-align: right;">248900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">247597.69835</td>
+<td style="text-align: right;">204000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">279397.90238</td>
+<td style="text-align: right;">283463</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">203103.93160</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">158048.21843</td>
+<td style="text-align: right;">168000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">101287.13009</td>
+<td style="text-align: right;">129900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">94794.18384</td>
+<td style="text-align: right;">85500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">192455.69391</td>
+<td style="text-align: right;">196000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">113806.00478</td>
+<td style="text-align: right;">138000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">110219.09648</td>
+<td style="text-align: right;">129500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">113381.87746</td>
+<td style="text-align: right;">139000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">187106.41520</td>
+<td style="text-align: right;">170000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">187904.80023</td>
+<td style="text-align: right;">185000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">255378.41821</td>
+<td style="text-align: right;">320000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">235663.49395</td>
+<td style="text-align: right;">250000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">243507.85883</td>
+<td style="text-align: right;">309000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">166324.15783</td>
+<td style="text-align: right;">165600</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">228651.95093</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">280147.72040</td>
+<td style="text-align: right;">239000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">404701.82889</td>
+<td style="text-align: right;">457347</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">411237.28329</td>
+<td style="text-align: right;">361919</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">198117.72767</td>
+<td style="text-align: right;">190000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">197841.02643</td>
+<td style="text-align: right;">207500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">164550.79014</td>
+<td style="text-align: right;">153500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">162748.98871</td>
+<td style="text-align: right;">190000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">89167.05026</td>
+<td style="text-align: right;">94500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">109138.68269</td>
+<td style="text-align: right;">123000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">143073.75030</td>
+<td style="text-align: right;">137500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">365087.97545</td>
+<td style="text-align: right;">315000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">339616.40311</td>
+<td style="text-align: right;">252000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">343242.40291</td>
+<td style="text-align: right;">293000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">346519.31435</td>
+<td style="text-align: right;">298236</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">341781.34362</td>
+<td style="text-align: right;">329900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">325476.98294</td>
+<td style="text-align: right;">378000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">334710.40250</td>
+<td style="text-align: right;">374000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">350953.85931</td>
+<td style="text-align: right;">437154</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">293372.21774</td>
+<td style="text-align: right;">332200</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">196222.87211</td>
+<td style="text-align: right;">170440</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">214727.72897</td>
+<td style="text-align: right;">234000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">181433.55502</td>
+<td style="text-align: right;">172400</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">227240.93983</td>
+<td style="text-align: right;">230000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">330950.01679</td>
+<td style="text-align: right;">350000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">361734.54469</td>
+<td style="text-align: right;">584500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">278265.71166</td>
+<td style="text-align: right;">252000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">290210.42158</td>
+<td style="text-align: right;">423000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">205817.73173</td>
+<td style="text-align: right;">187750</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">155133.82510</td>
+<td style="text-align: right;">139500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">210238.83651</td>
+<td style="text-align: right;">187000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">125149.27288</td>
+<td style="text-align: right;">126000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">172264.76043</td>
+<td style="text-align: right;">151000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">160800.16085</td>
+<td style="text-align: right;">149900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">170906.44411</td>
+<td style="text-align: right;">165000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">251144.48365</td>
+<td style="text-align: right;">221000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">191955.67394</td>
+<td style="text-align: right;">270000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">146103.20725</td>
+<td style="text-align: right;">170000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">275342.60620</td>
+<td style="text-align: right;">385000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">133609.46519</td>
+<td style="text-align: right;">146500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">191811.08513</td>
+<td style="text-align: right;">262500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">143993.61150</td>
+<td style="text-align: right;">140000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">137025.08399</td>
+<td style="text-align: right;">142000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">145517.87302</td>
+<td style="text-align: right;">158000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">181849.29301</td>
+<td style="text-align: right;">167000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">77647.45182</td>
+<td style="text-align: right;">129800</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">141667.01010</td>
+<td style="text-align: right;">172000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">136823.91389</td>
+<td style="text-align: right;">118000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">143486.50050</td>
+<td style="text-align: right;">143000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">157388.02915</td>
+<td style="text-align: right;">132000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">155152.90144</td>
+<td style="text-align: right;">134450</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">129738.00737</td>
+<td style="text-align: right;">133500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">133325.05582</td>
+<td style="text-align: right;">125000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">198716.43118</td>
+<td style="text-align: right;">167000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">98618.51171</td>
+<td style="text-align: right;">108480</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">61501.62773</td>
+<td style="text-align: right;">68000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">110593.40544</td>
+<td style="text-align: right;">105000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">192029.51305</td>
+<td style="text-align: right;">183000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">227200.95462</td>
+<td style="text-align: right;">277500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">120181.42870</td>
+<td style="text-align: right;">133700</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">93523.47025</td>
+<td style="text-align: right;">87500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">107140.84383</td>
+<td style="text-align: right;">105000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">85971.23986</td>
+<td style="text-align: right;">111500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">124339.04493</td>
+<td style="text-align: right;">124000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">15569.21472</td>
+<td style="text-align: right;">61500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">151060.92291</td>
+<td style="text-align: right;">87000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">134407.70921</td>
+<td style="text-align: right;">114504</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">169179.55937</td>
+<td style="text-align: right;">157000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">97854.06711</td>
+<td style="text-align: right;">110500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">110142.66269</td>
+<td style="text-align: right;">113000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">92889.72630</td>
+<td style="text-align: right;">109000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">212732.31839</td>
+<td style="text-align: right;">220000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">61432.91214</td>
+<td style="text-align: right;">52500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">78976.17331</td>
+<td style="text-align: right;">72000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">125789.72363</td>
+<td style="text-align: right;">125500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">89967.87813</td>
+<td style="text-align: right;">90000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">145881.43751</td>
+<td style="text-align: right;">137500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">174724.35558</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">121128.58622</td>
+<td style="text-align: right;">132000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">174846.88854</td>
+<td style="text-align: right;">149500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">179951.54268</td>
+<td style="text-align: right;">165000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">174528.30504</td>
+<td style="text-align: right;">156500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">160718.08515</td>
+<td style="text-align: right;">168000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">155373.00503</td>
+<td style="text-align: right;">164000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">201311.67487</td>
+<td style="text-align: right;">235000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">183410.89546</td>
+<td style="text-align: right;">182000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">168495.16702</td>
+<td style="text-align: right;">149900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">175909.71842</td>
+<td style="text-align: right;">180000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">227669.97463</td>
+<td style="text-align: right;">215000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">155747.86455</td>
+<td style="text-align: right;">224500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">192706.03136</td>
+<td style="text-align: right;">183600</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">194999.79589</td>
+<td style="text-align: right;">193879</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">225738.31060</td>
+<td style="text-align: right;">204900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">232196.50626</td>
+<td style="text-align: right;">260000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">213369.12868</td>
+<td style="text-align: right;">294900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">236443.27287</td>
+<td style="text-align: right;">209700</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">213386.13163</td>
+<td style="text-align: right;">181000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">197389.17810</td>
+<td style="text-align: right;">193000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">208838.78381</td>
+<td style="text-align: right;">196000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">243683.37210</td>
+<td style="text-align: right;">255000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">233901.31505</td>
+<td style="text-align: right;">222000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">227386.89681</td>
+<td style="text-align: right;">214000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">234733.92398</td>
+<td style="text-align: right;">227000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">244464.46389</td>
+<td style="text-align: right;">274300</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">121122.43556</td>
+<td style="text-align: right;">133000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">124424.00117</td>
+<td style="text-align: right;">155900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">211969.55091</td>
+<td style="text-align: right;">173900</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">129090.48038</td>
+<td style="text-align: right;">102000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">129131.81577</td>
+<td style="text-align: right;">117250</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">135406.77791</td>
+<td style="text-align: right;">134000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">135405.56543</td>
+<td style="text-align: right;">130000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">135407.50165</td>
+<td style="text-align: right;">137500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">97902.64078</td>
+<td style="text-align: right;">92000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">87229.99529</td>
+<td style="text-align: right;">116000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">103113.53878</td>
+<td style="text-align: right;">83000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">-22.18941</td>
+<td style="text-align: right;">35000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">84993.08521</td>
+<td style="text-align: right;">121000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">104432.00267</td>
+<td style="text-align: right;">128000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">115516.31642</td>
+<td style="text-align: right;">160000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">196099.37276</td>
+<td style="text-align: right;">138887</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">121909.11996</td>
+<td style="text-align: right;">102000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">176379.64950</td>
+<td style="text-align: right;">140000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">192035.91787</td>
+<td style="text-align: right;">230000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">224479.66296</td>
+<td style="text-align: right;">194000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">143523.04412</td>
+<td style="text-align: right;">137500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">243057.57482</td>
+<td style="text-align: right;">239000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">212455.00973</td>
+<td style="text-align: right;">210000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">255016.63158</td>
+<td style="text-align: right;">257000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">185184.80462</td>
+<td style="text-align: right;">157000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">95733.12252</td>
+<td style="text-align: right;">102000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">36058.57317</td>
+<td style="text-align: right;">85000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">97142.77514</td>
+<td style="text-align: right;">106500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">238130.29339</td>
+<td style="text-align: right;">228000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">257706.92272</td>
+<td style="text-align: right;">359900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">140904.18515</td>
+<td style="text-align: right;">164000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">163830.65956</td>
+<td style="text-align: right;">153500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">118004.13375</td>
+<td style="text-align: right;">104500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">126590.20599</td>
+<td style="text-align: right;">126500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">171840.48745</td>
+<td style="text-align: right;">140000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">94874.13474</td>
+<td style="text-align: right;">87550</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">94816.81059</td>
+<td style="text-align: right;">79500</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">138785.39848</td>
+<td style="text-align: right;">142500</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">124833.63489</td>
+<td style="text-align: right;">131000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">221604.60396</td>
+<td style="text-align: right;">188000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

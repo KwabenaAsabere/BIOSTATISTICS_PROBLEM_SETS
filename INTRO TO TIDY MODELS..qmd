@@ -1,0 +1,284 @@
+---
+title: "LECTURE 3 MILES CHEN"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(ISLR2)
+tidymodels_prefer()
+theme_set(theme_bw())
+
+
+```
+
+
+
+```{r}
+
+advertising <- read_csv("Advertising.csv")
+
+slr_1 <- advertising %>% 
+  lm(sales ~ TV, data = .)
+summary(slr_1)
+
+
+```
+
+### Using `tidymodels`
+```{r}
+
+lm_model <- linear_reg() %>% set_engine("lm")
+lm_form_fit <- lm_model %>% fit(sales ~ TV, data =advertising)
+
+lm_form_fit %>% extract_fit_engine() %>% summary() %>% tidy()
+
+```
+
+
+```{r}
+lm_tv_fit <- lm_model %>% fit(sales ~ TV, data =advertising)
+lm_radio_fit <- lm_model %>% fit(sales ~ radio, data =advertising)
+lm_newspaper_fit <- lm_model %>% fit(sales ~ newspaper, data =advertising)
+
+lm_tv_fit %>% extract_fit_engine() %>% summary() %>% coef() %>% round(4)
+lm_radio_fit %>% extract_fit_engine() %>% summary() %>% coef() %>% round(4)
+lm_newspaper_fit %>% extract_fit_engine() %>% summary() %>% coef() %>% round(4)
+```
+
+
+```{r}
+lm_combined_fit <- lm_model %>% 
+  fit(sales ~ TV + radio + newspaper, data = advertising)
+lm_combined_fit %>% extract_fit_engine() %>% summary() %>% coef() %>% round(4)
+
+```
+
+
+### creating workflows
+```{r}
+lm_model <- linear_reg() %>% set_engine("lm")
+lm_wflow <- workflow() %>% add_model(lm_model)
+
+formula_list <- list(
+ TV = sales ~ TV,
+ radio = sales ~ radio,
+ news = sales ~ newspaper
+ 
+)
+advertising_models <- workflow_set(
+  preproc = formula_list,
+  models = list(lm = lm_model)
+)
+print(advertising_models)
+advertising_models$info[[1]]$workflow[[1]]
+
+ad_models_results <- advertising_models %>% mutate(fit = map(info, ~fit(.x$workflow[[1]],advertising)))
+
+ad_models_results$fit[[1]] %>% extract_fit_engine() %>% summary() %>% coef() %>% round(4)
+
+ad_models_results$fit[[2]] %>% extract_fit_engine() %>% summary() %>% coef() %>% round(4)
+
+ad_models_results$fit[[3]] %>% extract_fit_engine() %>% summary() %>% coef() %>% round(4)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

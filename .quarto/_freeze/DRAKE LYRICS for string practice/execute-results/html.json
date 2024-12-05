@@ -1,0 +1,15 @@
+{
+  "hash": "468878c882ac98b2aadb6cbd283da492",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"STRINGS\"\neditor: visual\neditor_options: \n  chunk_output_type: console\n---\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(tidyverse)\ndrakesongs <- read_csv(\"drake_data.csv\")\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\ndrakesongs <- \n  drakesongs %>% \n  mutate(contains_fuck = str_detect(lyrics, pattern= \"fuck\"),\n         fuck_count = str_count(lyrics, pattern = \"fuck\")) \n\ndrakesongs <- drakesongs %>% filter(!is.na(contains_fuck))  \n  \n  \n  drakesongs %>%  summarize(total_fuck = sum(fuck_count),\n            max_fuck = max(fuck_count))\n```\n\n::: {.cell-output-display}\n<div class=\"kable-table\">\n\n| total_fuck| max_fuck|\n|----------:|--------:|\n|        555|       32|\n\n</div>\n:::\n\n```{.r .cell-code}\ndrakesongs %>% \n  slice_max(fuck_count, n = 1) %>% \n  select(lyrics_title,fuck_count)\n```\n\n::: {.cell-output-display}\n<div class=\"kable-table\">\n\n|lyrics_title                                                                              | fuck_count|\n|:-----------------------------------------------------------------------------------------|----------:|\n|Fuckin' Problems (Lost Verse) by Kendrick Lamar (Ft. 2 Chainz, A$AP Rocky & Drake) Lyrics |         32|\n\n</div>\n:::\n\n```{.r .cell-code}\nconvert_views <- function(views) {\n \n  if (str_detect(views, \"K$\")) {\n    return(as.numeric(str_replace(views, \"K$\", \"\")) * 1e3)\n  } else if (str_detect(views, \"M$\")) {\n    return(as.numeric(str_replace(views, \"M$\", \"\")) * 1e6)\n  } else {\n    return(as.numeric(views))\n  }\n}\n\ndrakesongs <- drakesongs %>% na.omit() %>% \n  mutate(views_songs = map(track_views,convert_views))\n\n\ndrake_tracks <- read_csv(\"drake_data.csv\")\n\ndrake_tracks <- drake_tracks %>% \n  mutate(song_views = if_else(\n    str_detect(track_views, \"K$\"),as.numeric(str_replace(track_views,\"K$\",\"\"))*1e3,\n    if_else(\n      str_detect(track_views, \"M$\"),as.numeric(str_replace(track_views,\"M$\",\"\"))*1e6,\n      as.numeric(track_views)\n    )\n  ))\n```\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

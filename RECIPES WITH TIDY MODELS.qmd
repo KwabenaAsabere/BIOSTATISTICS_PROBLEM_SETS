@@ -1,0 +1,20 @@
+---
+title: "RECIPES WITH TIDYMODELS"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## 
+
+```{r}
+library(tidymodels)
+library(tidyverse)
+```
+
+```{r}
+tuition_cost <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/tuition_cost.csv")
+
+
+diversity_raw <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-10/diversity_school.csv")
+```

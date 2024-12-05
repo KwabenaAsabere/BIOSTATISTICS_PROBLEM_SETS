@@ -1,0 +1,116 @@
+---
+title: "CONTROL FLOW"
+author: "K.ASABERE"
+editor: visual
+date:  "`r Sys.Date()`"
+editor_options: 
+  chunk_output_type: console
+---
+
+### Single *if* without *else*
+
+```{r}
+library(tidyverse)
+
+
+greet <- function(name,birthday = FALSE){
+  paste0(
+    "Hi ", name,
+    if(birthday) " and HAPPY BIRTHDAY"
+  )
+}
+
+greet("Maria",FALSE)
+greet("Jaime",TRUE)
+
+
+
+```
+
+```{r}
+format_lane_text <-  function(number){
+  paste0(
+    number,
+    " lane",
+    if (number >1)"s",
+    " of sequencing"
+  )
+}
+
+format_lane_text(1)
+format_lane_text(4)
+
+```
+
+### Vectorized choices
+
+`ifelse()` is a vectorised version of `if`
+
+```{r}
+x <- 1:10
+
+ifelse(x %% 5 ==0, "XXX", as.character(x))
+
+ifelse(x %% 2 == 0, "even", "odd")
+
+
+```
+
+While `case_when` uses logical expressions on the left- hand side of the formula, `case_match` uses values to match against `.x` with.The following two statements are equivalent:
+
+```{r}
+x <- c("a","b","a","d","b",NA,"c","e","f","g")
+
+
+case_when(
+  x %in% c("a", "b") ~ 1,
+  x %in% "c" ~ 2,
+  x %in% c("d", "e") ~ 3,
+  .default = 100
+)
+
+case_match(
+  x,
+  c("a", "b") ~ 1,
+  "c" ~ 2,
+  c("d", "e") ~ 3,
+  .default = 100
+)
+
+
+case_match(x,
+           c("a","b","c") ~ "low",
+           c("d","e") ~ "high",
+           .default = "missing")
+
+
+
+
+```
+
+### Loops
+
+-   Iteration over elements of a vector
+
+`for (item in vector) perform_action`
+
+```{r}
+for (i in 1:5) {
+  print(1:i)
+}
+
+
+```
+
+```{r}
+x <- numeric(length = 5L)
+df <- data.frame(x = 1:5)
+
+for (i in 1:5){
+  df$y[[i]] <- i +1
+}
+
+df
+
+
+```

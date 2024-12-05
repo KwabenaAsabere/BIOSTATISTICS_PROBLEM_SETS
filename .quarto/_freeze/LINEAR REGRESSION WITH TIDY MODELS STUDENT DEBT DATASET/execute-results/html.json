@@ -1,0 +1,17 @@
+{
+  "hash": "8211df656886eec55883ea2545b3164b",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"LINEAR REGRESSION WITH TIDY MODELS\"\neditor: visual\neditor_options: \n  chunk_output_type: console\n---\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(tidymodels)\nlibrary(tidyverse)\ntheme_set(theme_bw())\nstudent_debt <- read_csv(\"https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-02-09/student_debt.csv\")\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\nstudent_debt %>% \n  ggplot(aes(x=year,y=loan_debt_pct,color =race))+\n  geom_point(size = 3, alpha = 0.8)+\n  geom_smooth(method = \"lm\", se = FALSE)+\n  labs(x = NULL, y = \"% of families with student loan debt\", color = NULL)\n```\n\n::: {.cell-output-display}\n![](LINEAR-REGRESSION-WITH-TIDY-MODELS-STUDENT-DEBT-DATASET_files/figure-html/unnamed-chunk-2-1.png){width=576}\n:::\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\n## setting an engine with parsnip\n\nlm_spec <- linear_reg() %>% set_engine(\"lm\")\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\nlm_fit <- lm_spec %>% \n  fit(loan_debt_pct ~ year*race, data = student_debt)\nlm_fit\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nparsnip model object\n\n\nCall:\nstats::lm(formula = loan_debt_pct ~ year * race, data = data)\n\nCoefficients:\n      (Intercept)               year       raceHispanic          raceWhite  \n       -21.161193           0.010690          15.563202           5.933064  \nyear:raceHispanic     year:raceWhite  \n        -0.007827          -0.002986  \n```\n\n\n:::\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\ntidy(lm_fit)\n```\n\n::: {.cell-output-display}\n<div class=\"kable-table\">\n\n|term              |    estimate| std.error| statistic|   p.value|\n|:-----------------|-----------:|---------:|---------:|---------:|\n|(Intercept)       | -21.1611931| 2.5813722| -8.197653| 0.0000000|\n|year              |   0.0106904| 0.0012891|  8.293170| 0.0000000|\n|raceHispanic      |  15.5632017| 3.6506116|  4.263177| 0.0002705|\n|raceWhite         |   5.9330640| 3.6506116|  1.625225| 0.1171762|\n|year:raceHispanic |  -0.0078272| 0.0018230| -4.293543| 0.0002504|\n|year:raceWhite    |  -0.0029862| 0.0018230| -1.638045| 0.1144581|\n\n</div>\n:::\n:::\n\n\n### Explore Model\n\n::: {.cell}\n\n```{.r .cell-code}\nnew_points <- crossing(race = c(\"Black\", \"Hispanic\", \"White\"),\n                       year =1990:2020)\n\naugment(lm_fit, new_data = new_points) %>% \n  ggplot(aes(x=year,y = .pred,color =race))+\n  geom_smooth(method = \"lm\", se = FALSE)+\n  labs(x = NULL, y = \"% of families with student loan debt\", color = NULL)\n```\n\n::: {.cell-output-display}\n![](LINEAR-REGRESSION-WITH-TIDY-MODELS-STUDENT-DEBT-DATASET_files/figure-html/unnamed-chunk-6-1.png){width=576}\n:::\n:::\n",
+    "supporting": [
+      "LINEAR-REGRESSION-WITH-TIDY-MODELS-STUDENT-DEBT-DATASET_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

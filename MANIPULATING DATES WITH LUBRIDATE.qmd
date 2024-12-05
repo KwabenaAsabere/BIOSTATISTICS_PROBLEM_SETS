@@ -1,0 +1,405 @@
+---
+title: "MANIPULATING DATES WITH LUBRIDATE"
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+ 
+
+```{r}
+
+library(tidyverse)
+theme_set(theme_bw())
+library(skimr)
+```
+
+```{r}
+
+
+
+swiftsongs <- read_csv("swiftSongsFull.csv")
+
+
+swiftsongs <- swiftsongs %>% 
+  select(track_name,album_name,youtube_url,youtube_title,youtube_publish_date,youtube_duration,song_release_date_year,song_release_date_month,song_release_date_day)
+```
+
+
+```{r}
+
+swiftsongs %>% 
+  pull(youtube_publish_date) %>% class()
+
+swiftsongs %>% skim()
+```
+
+## Creating date/time 
+
+```{r}
+ymd("1989-12-04")
+mdy("12-04-1989")
+dmy("04-12-1989")
+
+class(dmy("04-12-1989"))
+
+```
+
+```{r}
+swiftsongs <- swiftsongs  %>% 
+  mutate(song_release_date_char = str_c(song_release_date_year,"-",song_release_date_month,"-",song_release_date_day),
+         song_release_date = ymd(song_release_date_char)
+         )
+
+
+```
+
+```{r}
+swiftsongs %>% 
+  ggplot(aes(x= song_release_date, y = youtube_publish_date,color=album_name))+
+  geom_point()+
+  labs(title = "Taylor Swift Release Dates",
+       y = "YouTube video release date",
+       x = "Song Release Date",
+       color = "Album",
+       caption = "Data source: YouTube API & Genius API") +
+  theme_bw()+
+  theme(legend.position = "bottom",
+        text = element_text(face = "bold"))
+
+```
+
+
+```{r}
+## using the make_datetime function
+swiftsongs <- swiftsongs %>% 
+  mutate(track_release_date = make_datetime(
+    year = song_release_date_year,
+    month = song_release_date_month,
+    day = song_release_date_day
+    ))
+
+```
+
+
+### Extracting date/time components
+```{r}
+# Extract year,month and day of the release date of thr YouTube videos using the you_tube_publish date variable
+
+swiftsongs <- swiftsongs %>% 
+  mutate(youtube_publish_date_year = year(youtube_publish_date),
+         youtube_publish_date_month = month(youtube_publish_date),
+         youtube_publish_date_day = day(youtube_publish_date))
+
+## extract day of the week  as a string using the youtube_publish_date variable
+
+swiftsongs <- swiftsongs %>% 
+  mutate(youtube_title_wday = wday(youtube_publish_date,label= TRUE, abbr= FALSE))
+
+```
+
+
+
+```{r}
+library(ggpubr)
+backimage <- png::readPNG("lover-album.png")
+
+swiftsongs %>% 
+  ggplot(aes(x = youtube_title_wday))+
+  background_image(backimage)+
+  geom_bar( fill = "#69b4dc",
+            color = "#fc94bc")+
+  labs(
+    title = "Taylor Swift YouTube videos: day of release",
+    x = "Release day",
+    y = "Number of Videos",
+    caption = "Data source:Youtube API"
+  )+
+  theme(element_text(face = "bold"))
+  
+  
+
+
+```
+
+### Calculating Difference between date/times
+
+```{r}
+## calculating someone's age inyears
+dob <- ymd("1993-06-01")
+age <- today() - dob
+age
+
+## calculating in years
+interval(dob, today())/years(1)
+
+## Using the song release date to calculate how many days it has been since the most recent Taylor swift release
+recentRelease <-  swiftsongs %>% pull(song_release_date) %>% 
+  max()
+
+today() - recentRelease
+interval(recentRelease, today())/years(1)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
